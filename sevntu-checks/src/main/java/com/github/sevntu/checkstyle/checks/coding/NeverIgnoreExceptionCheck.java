@@ -48,6 +48,6 @@ public class NeverIgnoreExceptionCheck extends Check
     @Override
     public void visitToken(DetailAST aMethodNode)
     {
-
+        
     }
 }
