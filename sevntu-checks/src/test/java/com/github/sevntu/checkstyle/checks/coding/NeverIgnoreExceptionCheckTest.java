@@ -43,7 +43,7 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
         checkConfig.addAttribute("isCommentAllowed",
                 "false");
         String[] expected = {
-                "10: " + getCheckMessage(MSG_KEY)
+                "10: " + getCheckMessage(MSG_KEY, "InterruptedException")
         };
         verify(checkConfig,
                 getPath("InputNeverIgnoreExceptionNotIgnoredCommentContent.java"),
@@ -55,7 +55,7 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
             throws Exception
     {
         String[] expected = {
-                "11: " + getCheckMessage(MSG_KEY)
+                "11: " + getCheckMessage(MSG_KEY, "InterruptedException")
         };
         verify(checkConfig,
                 getPath("InputNeverIgnoreExceptionIgnored.java"),
@@ -70,9 +70,9 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
         checkConfig.addAttribute("exceptionClassNameRegexp",
                 exceptionNameRegexp);
         checkConfig.addAttribute("isCommentAllowed",
-                "True");
+                "true");
         String[] expected = {
-                "27: " + getCheckMessage(MSG_KEY)
+                "27: " + getCheckMessage(MSG_KEY,exceptionNameRegexp)
         };
         verify(checkConfig,
                 getPath("InputNeverIgnoreExceptionCustomException.java"),
@@ -89,8 +89,8 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
         checkConfig.addAttribute("isCommentAllowed",
                 "false");
         String[] expected = {
-                "10: " + getCheckMessage(MSG_KEY),
-                "27: " + getCheckMessage(MSG_KEY)
+                "10: " + getCheckMessage(MSG_KEY, exceptionNameRegexp),
+                "27: " + getCheckMessage(MSG_KEY, exceptionNameRegexp)
         };
         verify(checkConfig,
                 getPath("InputNeverIgnoreExceptionCustomException.java"),
