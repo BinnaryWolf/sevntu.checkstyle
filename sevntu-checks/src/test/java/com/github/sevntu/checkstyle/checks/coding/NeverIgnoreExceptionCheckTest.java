@@ -1,3 +1,21 @@
+////////////////////////////////////////////////////////////////////////////////
+// checkstyle: Checks Java source code for adherence to a set of rules.
+// Copyright (C) 2001-2014  Oliver Burn
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+////////////////////////////////////////////////////////////////////////////////
 package com.github.sevntu.checkstyle.checks.coding;
 
 import static com.github.sevntu.checkstyle.checks.coding.NeverIgnoreExceptionCheck.MSG_KEY;
@@ -16,7 +34,7 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
     public void testNotIgnored()
             throws Exception
     {
-        String[] expected = {
+        final String[] expected = {
                 };
         verify(checkConfig,
                 getPath("InputNeverIgnoreExceptionNotIgnored.java"),
@@ -29,7 +47,7 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
     {
         checkConfig.addAttribute("isCommentAllowed",
                 "true");
-        String[] expected = {
+        final String[] expected = {
                 };
         verify(checkConfig,
                 getPath("InputNeverIgnoreExceptionNotIgnoredCommentContent.java"),
@@ -42,7 +60,7 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
     {
         checkConfig.addAttribute("isCommentAllowed",
                 "false");
-        String[] expected = {
+        final String[] expected = {
                 "10: " + getCheckMessage(MSG_KEY, "InterruptedException")
         };
         verify(checkConfig,
@@ -54,7 +72,7 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
     public void testExceptionIgnored()
             throws Exception
     {
-        String[] expected = {
+        final String[] expected = {
                 "11: " + getCheckMessage(MSG_KEY, "InterruptedException")
         };
         verify(checkConfig,
@@ -71,7 +89,7 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
                 exceptionNameRegexp);
         checkConfig.addAttribute("isCommentAllowed",
                 "true");
-        String[] expected = {
+        final String[] expected = {
                 "27: " + getCheckMessage(MSG_KEY, "NullPointerException")
         };
         verify(checkConfig,
@@ -88,7 +106,7 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
                 exceptionNameRegexp);
         checkConfig.addAttribute("isCommentAllowed",
                 "false");
-        String[] expected = {
+        final String[] expected = {
                 "10: " + getCheckMessage(MSG_KEY, "NullPointerException"),
                 "27: " + getCheckMessage(MSG_KEY, "NullPointerException")
         };
@@ -106,7 +124,7 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
                 exceptionNameRegexp);
         checkConfig.addAttribute("isCommentAllowed",
                 "true");
-        String[] expected = {
+        final String[] expected = {
                 "27: " + getCheckMessage(MSG_KEY, "NullPointerException"),
                 "63: " + getCheckMessage(MSG_KEY, "InterruptedException")
         };
@@ -124,7 +142,7 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
                 exceptionNameRegexp);
         checkConfig.addAttribute("isCommentAllowed",
                 "false");
-        String[] expected = {
+        final String[] expected = {
                 "10: " + getCheckMessage(MSG_KEY, "NullPointerException"),
                 "27: " + getCheckMessage(MSG_KEY, "NullPointerException"),
                 "46: " + getCheckMessage(MSG_KEY, "InterruptedException"),
@@ -144,7 +162,7 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
                 exceptionNameRegexp);
         checkConfig.addAttribute("isCommentAllowed",
                 "true");
-        String[] expected = {
+        final String[] expected = {
                 "27: " + getCheckMessage(MSG_KEY, "NullPointerException")
         };
         verify(checkConfig,
@@ -161,7 +179,7 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
                 exceptionNameRegexp);
         checkConfig.addAttribute("isCommentAllowed",
                 "false");
-        String[] expected = {
+        final String[] expected = {
                 "10: " + getCheckMessage(MSG_KEY, "NullPointerException"),
                 "27: " + getCheckMessage(MSG_KEY, "NullPointerException")
         };
