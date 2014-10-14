@@ -72,7 +72,7 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
         checkConfig.addAttribute("isCommentAllowed",
                 "true");
         String[] expected = {
-                "27: " + getCheckMessage(MSG_KEY,exceptionNameRegexp)
+                "27: " + getCheckMessage(MSG_KEY, "NullPointerException")
         };
         verify(checkConfig,
                 getPath("InputNeverIgnoreExceptionCustomException.java"),
@@ -89,11 +89,84 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
         checkConfig.addAttribute("isCommentAllowed",
                 "false");
         String[] expected = {
-                "10: " + getCheckMessage(MSG_KEY, exceptionNameRegexp),
-                "27: " + getCheckMessage(MSG_KEY, exceptionNameRegexp)
+                "10: " + getCheckMessage(MSG_KEY, "NullPointerException"),
+                "27: " + getCheckMessage(MSG_KEY, "NullPointerException")
         };
         verify(checkConfig,
                 getPath("InputNeverIgnoreExceptionCustomException.java"),
+                expected);
+    }
+
+    @Test
+    public void testCustomExceptionIgnoredAllowCommentAllPatern()
+            throws Exception
+    {
+        final String exceptionNameRegexp = "[\\w\\.]*Exception";
+        checkConfig.addAttribute("exceptionClassNameRegexp",
+                exceptionNameRegexp);
+        checkConfig.addAttribute("isCommentAllowed",
+                "true");
+        String[] expected = {
+                "27: " + getCheckMessage(MSG_KEY, "NullPointerException"),
+                "63: " + getCheckMessage(MSG_KEY, "InterruptedException")
+        };
+        verify(checkConfig,
+                getPath("InputNeverIgnoreExceptionDifferentExceptions.java"),
+                expected);
+    }
+
+    @Test
+    public void testCustomExceptionIgnoredNotAllowCommentAllPatern()
+            throws Exception
+    {
+        final String exceptionNameRegexp = "[\\w\\.]*Exception";
+        checkConfig.addAttribute("exceptionClassNameRegexp",
+                exceptionNameRegexp);
+        checkConfig.addAttribute("isCommentAllowed",
+                "false");
+        String[] expected = {
+                "10: " + getCheckMessage(MSG_KEY, "NullPointerException"),
+                "27: " + getCheckMessage(MSG_KEY, "NullPointerException"),
+                "46: " + getCheckMessage(MSG_KEY, "InterruptedException"),
+                "63: " + getCheckMessage(MSG_KEY, "InterruptedException")
+        };
+        verify(checkConfig,
+                getPath("InputNeverIgnoreExceptionDifferentExceptions.java"),
+                expected);
+    }
+
+    @Test
+    public void testCustomExceptionIgnoredAllowCommentNotAll()
+            throws Exception
+    {
+        final String exceptionNameRegexp = "NullPointerException";
+        checkConfig.addAttribute("exceptionClassNameRegexp",
+                exceptionNameRegexp);
+        checkConfig.addAttribute("isCommentAllowed",
+                "true");
+        String[] expected = {
+                "27: " + getCheckMessage(MSG_KEY, "NullPointerException")
+        };
+        verify(checkConfig,
+                getPath("InputNeverIgnoreExceptionDifferentExceptions.java"),
+                expected);
+    }
+
+    @Test
+    public void testCustomExceptionIgnoredNotAllowCommentNotAll()
+            throws Exception
+    {
+        final String exceptionNameRegexp = "NullPointerException";
+        checkConfig.addAttribute("exceptionClassNameRegexp",
+                exceptionNameRegexp);
+        checkConfig.addAttribute("isCommentAllowed",
+                "false");
+        String[] expected = {
+                "10: " + getCheckMessage(MSG_KEY, "NullPointerException"),
+                "27: " + getCheckMessage(MSG_KEY, "NullPointerException")
+        };
+        verify(checkConfig,
+                getPath("InputNeverIgnoreExceptionDifferentExceptions.java"),
                 expected);
     }
 
