@@ -1,8 +1,12 @@
 package com.github.sevntu.checkstyle.checks.coding;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.puppycrawl.tools.checkstyle.api.Check;
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
+import com.sun.mirror.util.Types;
 
 public class NeverIgnoreExceptionCheck extends Check
 {
@@ -46,8 +50,43 @@ public class NeverIgnoreExceptionCheck extends Check
     }
 
     @Override
-    public void visitToken(DetailAST aMethodNode)
+    public void visitToken(final DetailAST aMethodNode)
     {
-        
+        final DetailAST parameterDef = aMethodNode
+                .findFirstToken(TokenTypes.PARAMETER_DEF);
+        final String methodName = parameterDef.findFirstToken(TokenTypes.TYPE)
+                .getFirstChild().getText();
+        if (isExceptionMatchRegexp(methodName)) {
+            final DetailAST sListToken = aMethodNode
+                    .findFirstToken(TokenTypes.SLIST);
+            if (isEmptySlist(sListToken)) {
+                if (!(mIsCommentAllowed && isSListContainsComment(sListToken))) {
+                    log(aMethodNode.getLineNo(), MSG_KEY, methodName);
+                }
+            }
+        }
+
+    }
+
+    private boolean isExceptionMatchRegexp(final String aMethodName)
+    {
+        final Pattern methodNamePattern = Pattern
+                .compile(mExceptionClassNameRegexp);
+        final Matcher regexpMatcher = methodNamePattern.matcher(aMethodName);
+        return regexpMatcher.matches();
+    }
+
+    private boolean isEmptySlist(final DetailAST aSlistToken)
+    {
+        return aSlistToken.getFirstChild().getType() == TokenTypes.RCURLY;
+    }
+
+    private boolean isSListContainsComment(final DetailAST aSlistToken)
+    {
+        final DetailAST rCurlyTocken = aSlistToken
+                .findFirstToken(TokenTypes.RCURLY);
+        return getFileContents().hasIntersectionWithComment(
+                aSlistToken.getLineNo(), aSlistToken.getColumnNo(),
+                rCurlyTocken.getLineNo(), rCurlyTocken.getColumnNo());
     }
 }

@@ -25,7 +25,6 @@ public class InputNeverIgnoreExceptionCustomException
             throw new NullPointerException();
         }
         catch (NullPointerException iE) {
-            handleInterrupt(iE);
         }
     }
 
