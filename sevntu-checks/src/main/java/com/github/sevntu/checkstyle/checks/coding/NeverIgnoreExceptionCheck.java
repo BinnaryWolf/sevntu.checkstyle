@@ -18,6 +18,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 package com.github.sevntu.checkstyle.checks.coding;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,7 +65,7 @@ public class NeverIgnoreExceptionCheck extends Check
     /**
      * Default regex pattern for exception class name.
      */
-    public static final String DEFAULT_EXCEPTION_CLASSNAME_REGEXP = "InterruptedException";
+    public static final String DEFAULT_EXCEPTION_CLASSNAME_REGEXP = "(java.lang.)*InterruptedException";
 
     /**
      * If true allow to use comments instead of handling method.
@@ -97,7 +99,7 @@ public class NeverIgnoreExceptionCheck extends Check
     @Override
     public int[] getDefaultTokens()
     {
-        return new int[] {TokenTypes.LITERAL_CATCH };
+        return new int[] { TokenTypes.LITERAL_CATCH };
     }
 
     @Override
@@ -105,19 +107,39 @@ public class NeverIgnoreExceptionCheck extends Check
     {
         final DetailAST parameterDef = aCatchNode
                 .findFirstToken(TokenTypes.PARAMETER_DEF);
-        final String exceptionName = parameterDef
-                .findFirstToken(TokenTypes.TYPE)
-                .getFirstChild().getText();
-        if (isExceptionMatchRegexp(exceptionName)) {
-            final DetailAST sListToken = aCatchNode
-                    .findFirstToken(TokenTypes.SLIST);
-            if (isEmptySlist(sListToken)) {
-                if (!(mIsCommentAllowed && isSListContainsComment(sListToken))) {
-                    log(aCatchNode.getLineNo(), MSG_KEY, exceptionName);
+        DetailAST catchTypeNode = parameterDef
+                .findFirstToken(TokenTypes.TYPE).getFirstChild();
+        final List<String> exceptionsNameList = new ArrayList<String>();
+        do {
+            System.out.println("ping");
+            switch (catchTypeNode.getType()) {
+            case TokenTypes.IDENT:
+                exceptionsNameList.add(catchTypeNode.getText());
+                break;
+            case TokenTypes.DOT:
+                exceptionsNameList.add(getExceptionNameFromDot(catchTypeNode));
+                break;
+
+            default:
+                break;
+            }
+
+            catchTypeNode = catchTypeNode.getNextSibling();
+        }
+        while (catchTypeNode != null);
+        System.out.println("   ");
+        System.out.println("");
+        for (String exceptionName : exceptionsNameList) {
+            if (isExceptionMatchRegexp(exceptionName)) {
+                final DetailAST sListToken = aCatchNode
+                        .findFirstToken(TokenTypes.SLIST);
+                if (isEmptyCatch(sListToken)) {
+                    if (!(mIsCommentAllowed && isCatchContainsComment(sListToken))) {
+                        log(aCatchNode.getLineNo(), MSG_KEY, exceptionName);
+                    }
                 }
             }
         }
-
     }
 
     /**
@@ -140,7 +162,7 @@ public class NeverIgnoreExceptionCheck extends Check
      *        - DetailAST node of AST which represent catch body.
      * @return true if catch has no expressions and false otherwise.
      */
-    private boolean isEmptySlist(final DetailAST aSlistToken)
+    private static boolean isEmptyCatch(final DetailAST aSlistToken)
     {
         return aSlistToken.getFirstChild().getType() == TokenTypes.RCURLY;
     }
@@ -151,12 +173,32 @@ public class NeverIgnoreExceptionCheck extends Check
      *        - DetailAST node of AST which represent catch body.
      * @return true if catch body has comments and false otherwise.
      */
-    private boolean isSListContainsComment(final DetailAST aSlistToken)
+    private boolean isCatchContainsComment(final DetailAST aSlistToken)
     {
         final DetailAST rCurlyTocken = aSlistToken
                 .findFirstToken(TokenTypes.RCURLY);
         return getFileContents().hasIntersectionWithComment(
                 aSlistToken.getLineNo(), aSlistToken.getColumnNo(),
                 rCurlyTocken.getLineNo(), rCurlyTocken.getColumnNo());
+    }
+
+    private static String getExceptionNameFromDot(final DetailAST aDotNode)
+    {
+        String beforeDotString = "";
+        DetailAST leftNode = aDotNode.getFirstChild();
+        switch (leftNode.getType()) {
+        case TokenTypes.IDENT:
+            beforeDotString = leftNode.getText();
+            break;
+        case TokenTypes.DOT:
+            beforeDotString = getExceptionNameFromDot(leftNode);
+            break;
+        default:
+            break;
+        }
+        StringBuilder nameBuilder = new StringBuilder(beforeDotString);
+        nameBuilder.append('.');
+        nameBuilder.append(leftNode.getNextSibling().getText());
+        return nameBuilder.toString();
     }
 }
