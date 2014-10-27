@@ -187,5 +187,18 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
                 getPath("InputNeverIgnoreExceptionDifferentExceptions.java"),
                 expected);
     }
+    
+    @Test
+    public void testExceptionIgnoredMultiCatch()
+            throws Exception
+    {
+        final String[] expected = {
+                "11: " + getCheckMessage(MSG_KEY, "java.lang.InterruptedException")
+        };
+        verify(checkConfig,
+                getPath("InputNeverIgnoreExceptionMultiCatch.java"),
+                expected);
+    }
+
 
 }
