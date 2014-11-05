@@ -52,11 +52,10 @@ import com.puppycrawl.tools.checkstyle.api.TokenTypes;
  * regex pattern(InterruptedException by default).<br>
  * Also you can allow using comment to decribe why exception not handle instead
  * of handling exception with code. To suppress exception by comment check use
- * regexp pattern.<br> To configure check suppress exception by comment you
- * need to set IsCommentAllowed property to true and configure
- * SuppressCommentRegexp as you need.
- * Example:
- * <code><pre>
+ * regexp pattern.<br>
+ * To configure check suppress exception by comment you need to set
+ * IsCommentAllowed property to true and configure SuppressCommentRegexp as you
+ * need. Example: <code><pre>
  * try{
  *      //some code
  * }
@@ -70,8 +69,8 @@ import com.puppycrawl.tools.checkstyle.api.TokenTypes;
  * catch (InterruptedException e) {
  *      // No need to handle cause
  * }
- * </pre></code>
- * First  catch will be warn by check cause "No code here" doesn't match suppress comment pattern.
+ * </pre></code> First catch will be warn by check cause "No code here" doesn't
+ * match suppress comment pattern.
  * @author <a href="mailto:binnarywolf@gmail.com">Dmitriy Bazunov</a>
  */
 public class NeverIgnoreExceptionCheck extends Check
@@ -137,7 +136,7 @@ public class NeverIgnoreExceptionCheck extends Check
     @Override
     public int[] getDefaultTokens()
     {
-        return new int[] { TokenTypes.LITERAL_CATCH };
+        return new int[] {TokenTypes.LITERAL_CATCH };
     }
 
     @Override
@@ -216,10 +215,16 @@ public class NeverIgnoreExceptionCheck extends Check
                 rCurlyTocken.getLineNo());
     }
 
+    /**
+     * Method get full exception name with package name.
+     * @param aDotNode
+     *        - DetailAST node of AST which represent node with type DOT.
+     * @return String which content exception name with full pass.
+     */
     private static String getExceptionNameFromDot(final DetailAST aDotNode)
     {
         String beforeDotString = "";
-        DetailAST leftNode = aDotNode.getFirstChild();
+        final DetailAST leftNode = aDotNode.getFirstChild();
         switch (leftNode.getType()) {
         case TokenTypes.IDENT:
             beforeDotString = leftNode.getText();
@@ -230,14 +235,21 @@ public class NeverIgnoreExceptionCheck extends Check
         default:
             break;
         }
-        StringBuilder nameBuilder = new StringBuilder(beforeDotString);
+        final StringBuilder nameBuilder = new StringBuilder(beforeDotString);
         nameBuilder.append('.');
         nameBuilder.append(leftNode.getNextSibling().getText());
         return nameBuilder.toString();
     }
 
-    private boolean
-            checkCommentRegular(final int aStartLine, final int aEndLine)
+    /**
+     * Method checks if one of comment line match suppress regexp.
+     * @param aStartLine
+     *        - Number of first line of the catch block.
+     * @param aEndLine
+     *        - Number of last line of the catch block.
+     * @return boolean true if one of lines match suppress regexp and false otherwise.
+     */
+    private boolean checkCommentRegular(final int aStartLine, final int aEndLine)
     {
         boolean result = false;
         final ImmutableMap<Integer, List<TextBlock>> cCommentMaps = getFileContents()
@@ -247,7 +259,8 @@ public class NeverIgnoreExceptionCheck extends Check
         ImmutableSet<Integer> lineNumbers = cCommentMaps.keySet();
         for (Integer commentLineNumber : lineNumbers) {
             if (commentLineNumber >= aStartLine
-                    && commentLineNumber <= aEndLine) {
+                    && commentLineNumber <= aEndLine)
+            {
                 for (TextBlock block : cCommentMaps.get(commentLineNumber)) {
                     for (String commentLine : block.getText()) {
                         result |= isCommentMatchRegexp(commentLine);
@@ -259,10 +272,12 @@ public class NeverIgnoreExceptionCheck extends Check
         for (Integer commentLineNumber : lineNumbers) {
             if (commentLineNumber >= aStartLine
                     && commentLineNumber <= aEndLine)
+            {
                 for (String commentLine : cppCommentsMap.get(commentLineNumber)
                         .getText()) {
                     result |= isCommentMatchRegexp(commentLine);
                 }
+            }
         }
         return result;
     }
