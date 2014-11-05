@@ -23,8 +23,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.puppycrawl.tools.checkstyle.api.Check;
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
+import com.puppycrawl.tools.checkstyle.api.TextBlock;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
 
 /**
@@ -48,7 +51,27 @@ import com.puppycrawl.tools.checkstyle.api.TokenTypes;
  * </pre></code>Check could be configured to validate exceptions that match
  * regex pattern(InterruptedException by default).<br>
  * Also you can allow using comment to decribe why exception not handle instead
- * of handling exception with code.
+ * of handling exception with code. To suppress exception by comment check use
+ * regexp pattern.<br> To configure check suppress exception by comment you
+ * need to set IsCommentAllowed property to true and configure
+ * SuppressCommentRegexp as you need.
+ * Example:
+ * <code><pre>
+ * try{
+ *      //some code
+ * }
+ * catch (InterruptedException e) {
+ *      //No code here
+ * }
+ * <br>
+ * try{
+ *      //some code
+ * }
+ * catch (InterruptedException e) {
+ *      // No need to handle cause
+ * }
+ * </pre></code>
+ * First  catch will be warn by check cause "No code here" doesn't match suppress comment pattern.
  * @author <a href="mailto:binnarywolf@gmail.com">Dmitriy Bazunov</a>
  */
 public class NeverIgnoreExceptionCheck extends Check
@@ -60,12 +83,17 @@ public class NeverIgnoreExceptionCheck extends Check
     /**
      * Default isCommentAllowed.
      */
-    public static final boolean DEFAULT_IS_COMMENT_ALLOWED = true;
+    public static final boolean DEFAULT_IS_COMMENT_ALLOWED = false;
 
     /**
      * Default regex pattern for exception class name.
      */
     public static final String DEFAULT_EXCEPTION_CLASSNAME_REGEXP = "(java.lang.)*InterruptedException";
+
+    /**
+     * Default regex pattern for suppress comment.
+     */
+    public static final String DEFAULT_SUPPRESS_COMMENT_REGEXP = ".+No need to handle cause.+";
 
     /**
      * If true allow to use comments instead of handling method.
@@ -76,6 +104,10 @@ public class NeverIgnoreExceptionCheck extends Check
      * Regex pattern for Exception name.
      */
     private String mExceptionClassNameRegexp;
+    /**
+     * Regex pattern for Exception name.
+     */
+    private String mCommentSuppressRegexp;
 
     /**
      * Constructor with default parameters.
@@ -84,6 +116,12 @@ public class NeverIgnoreExceptionCheck extends Check
     {
         mIsCommentAllowed = DEFAULT_IS_COMMENT_ALLOWED;
         mExceptionClassNameRegexp = DEFAULT_EXCEPTION_CLASSNAME_REGEXP;
+        mCommentSuppressRegexp = DEFAULT_SUPPRESS_COMMENT_REGEXP;
+    }
+
+    public void setCommentSuppressRegexp(String aCommentSuppressRegexp)
+    {
+        mCommentSuppressRegexp = aCommentSuppressRegexp;
     }
 
     public void setIsCommentAllowed(boolean aAllow)
@@ -111,7 +149,6 @@ public class NeverIgnoreExceptionCheck extends Check
                 .findFirstToken(TokenTypes.TYPE).getFirstChild();
         final List<String> exceptionsNameList = new ArrayList<String>();
         do {
-            System.out.println("ping");
             switch (catchTypeNode.getType()) {
             case TokenTypes.IDENT:
                 exceptionsNameList.add(catchTypeNode.getText());
@@ -127,8 +164,6 @@ public class NeverIgnoreExceptionCheck extends Check
             catchTypeNode = catchTypeNode.getNextSibling();
         }
         while (catchTypeNode != null);
-        System.out.println("   ");
-        System.out.println("");
         for (String exceptionName : exceptionsNameList) {
             if (isExceptionMatchRegexp(exceptionName)) {
                 final DetailAST sListToken = aCatchNode
@@ -177,9 +212,8 @@ public class NeverIgnoreExceptionCheck extends Check
     {
         final DetailAST rCurlyTocken = aSlistToken
                 .findFirstToken(TokenTypes.RCURLY);
-        return getFileContents().hasIntersectionWithComment(
-                aSlistToken.getLineNo(), aSlistToken.getColumnNo(),
-                rCurlyTocken.getLineNo(), rCurlyTocken.getColumnNo());
+        return checkCommentRegular(aSlistToken.getLineNo(),
+                rCurlyTocken.getLineNo());
     }
 
     private static String getExceptionNameFromDot(final DetailAST aDotNode)
@@ -201,4 +235,50 @@ public class NeverIgnoreExceptionCheck extends Check
         nameBuilder.append(leftNode.getNextSibling().getText());
         return nameBuilder.toString();
     }
+
+    private boolean
+            checkCommentRegular(final int aStartLine, final int aEndLine)
+    {
+        boolean result = false;
+        final ImmutableMap<Integer, List<TextBlock>> cCommentMaps = getFileContents()
+                .getCComments();
+        final ImmutableMap<Integer, TextBlock> cppCommentsMap = getFileContents()
+                .getCppComments();
+        ImmutableSet<Integer> lineNumbers = cCommentMaps.keySet();
+        for (Integer commentLineNumber : lineNumbers) {
+            if (commentLineNumber >= aStartLine
+                    && commentLineNumber <= aEndLine) {
+                for (TextBlock block : cCommentMaps.get(commentLineNumber)) {
+                    for (String commentLine : block.getText()) {
+                        result |= isCommentMatchRegexp(commentLine);
+                    }
+                }
+            }
+        }
+        lineNumbers = cppCommentsMap.keySet();
+        for (Integer commentLineNumber : lineNumbers) {
+            if (commentLineNumber >= aStartLine
+                    && commentLineNumber <= aEndLine)
+                for (String commentLine : cppCommentsMap.get(commentLineNumber)
+                        .getText()) {
+                    result |= isCommentMatchRegexp(commentLine);
+                }
+        }
+        return result;
+    }
+
+    /**
+     * Method check if comment line match regex pattern.
+     * @param aCommentLine
+     *        - String comment line to match.
+     * @return true if exception class name match and false otherwise.
+     */
+    private boolean isCommentMatchRegexp(final String aCommentLine)
+    {
+        final Pattern methodNamePattern = Pattern
+                .compile(mCommentSuppressRegexp);
+        final Matcher regexpMatcher = methodNamePattern.matcher(aCommentLine);
+        return regexpMatcher.matches();
+    }
+
 }

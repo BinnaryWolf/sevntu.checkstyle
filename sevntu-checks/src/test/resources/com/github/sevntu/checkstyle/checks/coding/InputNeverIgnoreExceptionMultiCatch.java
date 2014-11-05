@@ -8,7 +8,7 @@ public class InputNeverIgnoreExceptionMultiCatch
         try {
             throw new InterruptedException();
         }
-        catch (java.lang.InterruptedException | NullPointerException|Exception| IndexOutOfBoundExeption iE) {
+        catch (java.lang.InterruptedException | NullPointerException| IndexOutOfBoundsException iE) {
         }
     }
 
