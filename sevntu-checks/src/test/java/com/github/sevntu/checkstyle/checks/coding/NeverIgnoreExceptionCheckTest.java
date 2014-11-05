@@ -20,6 +20,10 @@ package com.github.sevntu.checkstyle.checks.coding;
 
 import static com.github.sevntu.checkstyle.checks.coding.NeverIgnoreExceptionCheck.MSG_KEY;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+
 import org.junit.Test;
 
 import com.github.sevntu.checkstyle.BaseCheckTestSupport;
@@ -218,4 +222,46 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
                 expected);
     }
 
+    @Override
+    protected String getPath(String aFilename)
+    {
+        String result = null;
+        try {
+            URL resource = getClass().getResource(aFilename);
+            if (resource == null) {
+                File inputFile = new File(getFilePath(aFilename));
+                if (inputFile.exists()) {
+                    result = inputFile.getCanonicalPath();
+                }
+                else {
+                    throw new RuntimeException(
+                            String.format(
+                                    "Resource '%s' can NOT be found "
+                                            + "(does not exist or just not visible for current classloader)",
+                                    aFilename));
+                }
+            }
+            else {
+                result = new File(resource.getPath()).getCanonicalPath();
+            }
+        }
+        catch (IOException e) {
+            throw new RuntimeException(
+                    "Error while getting path for resource: " + aFilename, e);
+        }
+        return result;
+    }
+
+    private String getFilePath(String aFileName)
+    {
+        String testPath = this.getClass().getProtectionDomain()
+                .getCodeSource().getLocation().getPath();
+        StringBuilder builder = new StringBuilder(testPath.substring(0,
+                testPath
+                        .lastIndexOf("target/test-classes/")));
+        builder.append("src/test/resources-noncompilable");
+        builder.append("/com/github/sevntu/checkstyle/checks/coding/");
+        builder.append(aFileName);
+        return builder.toString();
+    }
 }
