@@ -202,7 +202,7 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
                                 "java.lang.InterruptedException")
         };
         verify(checkConfig,
-                getPath("InputNeverIgnoreExceptionMultiCatch.java"),
+                getNonCompilablePath("coding/InputNeverIgnoreExceptionMultiCatch.java"),
                 expected);
     }
 
@@ -222,46 +222,12 @@ public class NeverIgnoreExceptionCheckTest extends BaseCheckTestSupport
                 expected);
     }
 
-    @Override
-    protected String getPath(String aFilename)
+    private String getNonCompilablePath(String aFilename)
+            throws IOException
     {
-        String result = null;
-        try {
-            URL resource = getClass().getResource(aFilename);
-            if (resource == null) {
-                File inputFile = new File(getFilePath(aFilename));
-                if (inputFile.exists()) {
-                    result = inputFile.getCanonicalPath();
-                }
-                else {
-                    throw new RuntimeException(
-                            String.format(
-                                    "Resource '%s' can NOT be found "
-                                            + "(does not exist or just not visible for current classloader)",
-                                    aFilename));
-                }
-            }
-            else {
-                result = new File(resource.getPath()).getCanonicalPath();
-            }
-        }
-        catch (IOException e) {
-            throw new RuntimeException(
-                    "Error while getting path for resource: " + aFilename, e);
-        }
-        return result;
-    }
-
-    private String getFilePath(String aFileName)
-    {
-        String testPath = this.getClass().getProtectionDomain()
-                .getCodeSource().getLocation().getPath();
-        StringBuilder builder = new StringBuilder(testPath.substring(0,
-                testPath
-                        .lastIndexOf("target/test-classes/")));
-        builder.append("src/test/resources-noncompilable");
-        builder.append("/com/github/sevntu/checkstyle/checks/coding/");
-        builder.append(aFileName);
-        return builder.toString();
+        return new File(
+                "src/test/resources-noncompilable/com/github/sevntu/checkstyle/checks/"
+                        + aFilename)
+                .getCanonicalPath();
     }
 }
