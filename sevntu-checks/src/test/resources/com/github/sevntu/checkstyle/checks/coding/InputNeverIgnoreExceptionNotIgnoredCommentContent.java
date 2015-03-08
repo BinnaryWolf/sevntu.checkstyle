@@ -8,7 +8,7 @@ public class InputNeverIgnoreExceptionNotIgnoredCommentContent
             throw new InterruptedException();
         }
         catch (InterruptedException iE) {
-            //No need to handle cause .... reason
+            //No need to handle that reason
         }
     }
 

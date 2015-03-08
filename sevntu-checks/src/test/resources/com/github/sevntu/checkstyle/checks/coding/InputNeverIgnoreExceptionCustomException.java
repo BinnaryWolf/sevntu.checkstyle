@@ -8,7 +8,7 @@ public class InputNeverIgnoreExceptionCustomException
             throw new NullPointerException();
         }
         catch (NullPointerException iE) {
-            //No need to handle cause .... reason
+            //No need to handle that reason
             //No need to handle cause .... reason
 
             //No need to handle cause .... reason
